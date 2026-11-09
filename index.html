@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pass it on – referral prototype</title>
+<title>Pass it on: referral prototype</title>
 <meta name="description" content="An unofficial prototype of a measurable referral program and incentive lab, built for PostHog's Q4 Goal 1.">
 <script>
   // set theme before paint to avoid a flash
@@ -223,7 +223,7 @@
     <nav>
       <a class="hide-sm" href="#try">Try it</a>
       <a class="hide-sm" href="#lab">Incentive lab</a>
-      <a class="hide-sm" href="#maths">Maths</a>
+      <a class="hide-sm" href="#maths">Math</a>
       <button class="btn secondary small iconbtn" id="theme" aria-label="Toggle light and dark mode">Dark mode</button>
     </nav>
   </header>
@@ -233,7 +233,7 @@
     <div>
       <span class="eyebrow">Prototype · Q4 Goal 1: referral platform</span>
       <h1>Your best users are already telling their friends. <mark>Let's count it.</mark></h1>
-      <p class="lead">One link. Honest attribution. And a lab for finding out which incentives actually make developers share, instead of guessing.</p>
+      <p class="lead">Every user gets a personal link, and four incentives run against a control so the team learns which one makes developers share.</p>
       <div class="cta">
         <a class="btn" href="#try">Make a link</a>
         <a class="btn secondary" href="#lab">See the experiments</a>
@@ -312,7 +312,7 @@
 
       <div>
         <h3 style="margin-bottom:.4rem">Your rewards</h3>
-        <p class="muted" style="margin-bottom:.8rem">Rewards unlock on <b>activated</b> friends, not clicks. That keeps the program honest and cheap to run. Every arm rewards the referrer only, so the arms differ by incentive type, not by who gets paid.</p>
+        <p class="muted" style="margin-bottom:.8rem">Rewards unlock on activated friends. Clicks earn nothing, which keeps the program cheap to run. Every arm pays only the referrer, so the arms differ in the type of incentive and nothing else.</p>
         <div class="pills" role="group" aria-label="Incentive variant shown to this user">
           <button class="pill" data-variant="control" aria-pressed="false">Control</button>
           <button class="pill" data-variant="credits" aria-pressed="true">Credits</button>
@@ -320,7 +320,7 @@
           <button class="pill" data-variant="donate" aria-pressed="false">Donation</button>
           <button class="pill" data-variant="fame" aria-pressed="false">Recognition</button>
         </div>
-        <p class="note" style="margin-top:-.3rem">Pretend your organisation was assigned to a different arm. Organisation-level feature flag: <code id="flagnote">referral-incentive = credits</code></p>
+        <p class="note" style="margin-top:-.3rem">Pretend your organization was assigned to a different arm. Organization-level feature flag: <code id="flagnote">referral-incentive = credits</code></p>
         <div class="progress" aria-hidden="true"><i id="bar"></i></div>
         <div class="ladder" id="ladder"></div>
       </div>
@@ -332,14 +332,14 @@
     <div class="sec-head">
       <span class="eyebrow">2 · The team's view</span>
       <h2>Word of mouth, finally with a funnel</h2>
-      <p>PostHog says most of its growth is word of mouth. The first thing a referral program gives you is the ability to see it: who shares, who converts, and where people drop off.</p>
+      <p>PostHog's job post says word of mouth is how it grows and asks to make that explicit and measurable. A referral funnel does that: who shares, who converts, and where people drop off.</p>
     </div>
     <div class="grid2">
       <div class="win">
         <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">Referral funnel · last 30 days</span><span class="tag">synthetic</span></div>
         <div class="win-body">
           <div class="funnel" id="funnel"></div>
-          <div class="annot"><b>Annotation:</b> the big cliff is click → sign-up. That's where I'd test the landing page first (does the friend see who invited them, and what they get?).</div>
+          <div class="annot"><b>Annotation:</b> in this made-up funnel, click to sign-up converts at 31%, the weakest step. I'd test the landing page there first: does the friend see who invited them, and what do they get?</div>
         </div>
       </div>
       <div class="win">
@@ -354,18 +354,18 @@
   <!-- LAB -->
   <section class="block" id="lab">
     <div class="sec-head">
-      <span class="eyebrow">3 · The part that matters</span>
-      <h2>An incentive lab, not a one-off program</h2>
-      <p>The goal isn't "launch referrals". It's to <b>discover which incentives work</b>. So the platform ships with a control and four competing predictions, one organisation-level feature flag, and one shared success metric. The arms are all one-sided (only the referrer is rewarded) and priced at a similar value per reward, so a win tells you about the <i>type</i> of incentive, not who got paid.</p>
+      <span class="eyebrow">3 · The experiment</span>
+      <h2>An incentive lab for finding what works</h2>
+      <p>The job post defines success as discovering incentives that work. So the platform ships a control and four competing predictions, one organization-level feature flag, and one success metric. Every arm rewards only the referrer, at a similar value per reward, so a win tells you which type of incentive works.</p>
     </div>
     <div class="labgrid" id="labgrid"></div>
 
     <div class="grid2" style="margin-top:28px">
       <div>
         <h3 style="margin-bottom:.6rem">One metric, plus the cost</h3>
-        <p><b>Activated referred orgs per 100 eligible orgs</b>, per arm. Every assigned org counts, whether or not it created a link (intention-to-treat). Each org gets the same window: 30 days to refer, plus 7 days for the friend to activate. Shares and clicks are read per arm to explain <i>why</i> an arm moved, not to pick the winner.</p>
-        <p><b>Co-decision metric:</b> cost per activated org. Recognition is nearly free and credits are not, so the question is which incentive delivers activated orgs most cheaply.</p>
-        <p class="muted">Guardrails: incrementality (the control arm shows who would have signed up anyway), referrals that come from the referrer's own organisation, spam and abuse reports, and whether referred orgs retain as well as organic ones.</p>
+        <p><b>Activated referred orgs per 100 eligible orgs</b>, per arm. Every assigned org counts, whether or not it created a link (intention-to-treat). Each org gets the same window: 30 days to refer, plus 7 days for the friend to activate. Read shares and clicks per arm to explain why an arm moved, and pick the winner on activations.</p>
+        <p>Cost per activated org is the co-decision metric. Recognition is nearly free and credits are not, so the question is which incentive delivers activated orgs most cheaply.</p>
+        <p class="muted">Guardrails: incrementality (the control arm shows who would have signed up anyway), referrals that come from the referrer's own organization, spam and abuse reports, and whether referred orgs retain as well as organic ones.</p>
       </div>
       <div class="win">
         <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">instrumentation.js</span></div>
@@ -391,21 +391,21 @@ posthog.capture(<span class="s">'referral_activated'</span>,
 
     <div class="grid2" style="margin-top:28px">
       <div class="win">
-        <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">Can this experiment detect anything?</span></div>
+        <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">Sample size check</span></div>
         <div class="win-body">
-          <p>The synthetic funnel above gives about <b>94 activated referred orgs in 30 days</b>. Split across five arms, that's roughly <b>20 per arm</b>.</p>
-          <p>In a rough simulation (counts treated as Poisson, each incentive compared with control, adjusted for four comparisons), that is enough to reliably spot a lift of about <b>2.5x</b>. A 2x lift would be caught only about 6 times in 10, and 1.5x only about 1 time in 7.</p>
-          <p style="margin-bottom:0">So the smallest effect worth detecting has to be big, or the design has to change: <b>fewer arms</b> (control against the two strongest, where 2x is caught about 95% of the time), a <b>longer run</b>, or a pre-agreed <b>leading indicator</b> such as referred sign-ups (about 37 per arm, where 2x is caught about 9 times in 10) to decide faster.</p>
+          <p>The synthetic funnel above gives about <b>94 activated referred orgs in 30 days</b>. Split across five arms, that's roughly 20 per arm.</p>
+          <p>In a rough simulation (counts treated as Poisson, each incentive compared with control, adjusted for four comparisons), 20 per arm is enough to reliably spot a lift of about 2.5x. A 2x lift would be caught about 6 times in 10, and 1.5x about 1 time in 7.</p>
+          <p style="margin-bottom:0">So the smallest effect worth detecting has to be large, or the design has to change. Options: fewer arms (control against one incentive, about 47 orgs each, catches 2x about 95% of the time), a longer run, or a pre-agreed leading indicator such as referred sign-ups (about 37 per arm, where 2x is caught about 9 times in 10) to decide faster.</p>
         </div>
       </div>
       <div class="win">
         <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">Decision rule, written before launch</span></div>
         <div class="win-body">
           <ul class="tight" style="margin-top:0">
-            <li><b>A win</b> is an arm that beats control on activated orgs per 100 eligible orgs at the pre-agreed threshold, with cost per activated org inside budget.</li>
-            <li><b>No arm beats control?</b> That is the finding. Ship the plain link and spend the budget elsewhere.</li>
-            <li><b>Credits win on activations but lose on cost?</b> Pick the cheapest arm that clears the threshold, and say so in the write-up.</li>
-            <li><b>No peeking.</b> Arms are not dropped by eye mid-test. If we want to stop arms early, we name a sequential method up front.</li>
+            <li>A win is an arm that beats control on activated orgs per 100 eligible orgs at the pre-agreed threshold, with cost per activated org inside budget.</li>
+            <li>If no arm beats control, ship the plain link and spend the budget elsewhere.</li>
+            <li>If credits win on activations but lose on cost, pick the cheapest arm that clears the threshold and say so in the write-up.</li>
+            <li>No peeking. Nobody drops an arm by eye mid-test. If we want to stop arms early, we name a sequential method up front.</li>
           </ul>
         </div>
       </div>
@@ -416,24 +416,24 @@ posthog.capture(<span class="s">'referral_activated'</span>,
   <section class="block" id="maths">
     <div class="sec-head">
       <span class="eyebrow">4 · Back-of-envelope</span>
-      <h2>What would it take to matter?</h2>
-      <p>A quick viral-coefficient calculator. Drag the sliders to see which step is worth improving. (Spoiler: it's rarely the share button.)</p>
+      <h2>Which step is worth improving</h2>
+      <p>Drag the sliders to see how much each step changes the number of activated orgs per referrer. The defaults are guesses, not PostHog data.</p>
     </div>
     <div class="grid2">
       <div class="win">
         <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">k-factor</span></div>
         <div class="win-body">
           <div class="slider"><div class="top"><label for="k1">Invites sent per referrer</label><span id="v1"></span></div><input id="k1" type="range" min="1" max="20" step="1" value="4"></div>
-          <div class="slider"><div class="top"><label for="k2">Invite → click</label><span id="v2"></span></div><input id="k2" type="range" min="5" max="80" step="1" value="30"></div>
-          <div class="slider"><div class="top"><label for="k3">Click → sign-up</label><span id="v3"></span></div><input id="k3" type="range" min="2" max="60" step="1" value="25"></div>
-          <div class="slider"><div class="top"><label for="k4">Sign-up → activated</label><span id="v4"></span></div><input id="k4" type="range" min="5" max="90" step="1" value="50"></div>
+          <div class="slider"><div class="top"><label for="k2">Invite to click</label><span id="v2"></span></div><input id="k2" type="range" min="5" max="80" step="1" value="30"></div>
+          <div class="slider"><div class="top"><label for="k3">Click to sign-up</label><span id="v3"></span></div><input id="k3" type="range" min="2" max="60" step="1" value="25"></div>
+          <div class="slider"><div class="top"><label for="k4">Sign-up to activated</label><span id="v4"></span></div><input id="k4" type="range" min="5" max="90" step="1" value="50"></div>
         </div>
       </div>
       <div>
         <p class="muted" style="margin-bottom:.4rem">Activated new orgs per referrer</p>
         <div class="kbig" id="kout">0.15</div>
         <div class="meter" aria-hidden="true"><i id="kbar"></i><u></u></div>
-        <p class="note">Dashed line = 1.0, where growth feeds itself. Almost nobody gets there. The aim is a steady extra channel, not a loop.</p>
+        <p class="note">The right edge is 1.0: each referrer brings one new activated org, so growth feeds itself.</p>
         <p id="ktext"></p>
       </div>
     </div>
@@ -443,30 +443,30 @@ posthog.capture(<span class="s">'referral_activated'</span>,
   <section class="block" id="plan">
     <div class="sec-head">
       <span class="eyebrow">5 · If I got to run it</span>
-      <h2>Ship small, read results, follow the rule</h2>
+      <h2>An eight-week plan</h2>
     </div>
     <div class="steps">
       <div class="win"><div class="win-body step">
-        <span class="badge">Weeks 1–2</span>
+        <span class="badge">Weeks 1-2</span>
 <h3>Instrument and check the data</h3>
         <ul class="tight"><li>Add the four events and group analytics, agree what "activated" means, check the data end to end</li><li>One placement only (in-app, after the first useful moment)</li></ul>
       </div></div>
       <div class="win"><div class="win-body step">
-        <span class="badge">Weeks 3–6</span>
+        <span class="badge">Weeks 3-6</span>
 <h3>Run five arms at once</h3>
-        <ul class="tight"><li>No incentive, credits, swag, donation, recognition</li><li>Randomise by organisation, so teammates see the same offer</li><li>Pre-register the metric, the smallest effect worth detecting and the decision rule, so nobody picks a winner by vibes</li></ul>
+        <ul class="tight"><li>No incentive, credits, swag, donation, recognition</li><li>Randomize by organization, so teammates see the same offer</li><li>Pre-register the metric, the smallest effect worth detecting and the decision rule, so nobody picks a winner by vibes</li></ul>
       </div></div>
       <div class="win"><div class="win-body step">
-        <span class="badge">Weeks 7–8</span>
+        <span class="badge">Weeks 7-8</span>
         <h3>Decide in public</h3>
-        <ul class="tight"><li>Write up results in the handbook, including the ones that flopped</li><li>Double down on one arm, add a second surface</li><li>If no arm beats control, that's the finding: ship the plain link and spend the budget elsewhere</li><li>Hand the playbook to Sales for partner and customer referrals</li></ul>
+        <ul class="tight"><li>Write up results in the handbook, including the ones that flopped</li><li>Scale the winning arm to a second surface, or ship the plain link if none beat control</li><li>Hand the playbook to Sales for partner and customer referrals</li></ul>
       </div></div>
     </div>
   </section>
 
   <footer>
     <p><b>Unofficial prototype</b> by Martin Pavlovic, made for PostHog's Developer Marketer application. Not made by, endorsed by, or affiliated with PostHog. It borrows the look described in their public handbook (palette, type feel, interaction rules) and uses none of their logos or hedgehog artwork. All numbers, names and rewards are made up.</p>
-    <p>Single file, no backend, no tracking. Built as a conversation starter: <a href="https://posthog.com/careers/developer-marketer-sales">the role</a>.</p>
+    <p>Single file, no backend, no tracking. <a href="https://posthog.com/careers/developer-marketer-sales">Read the role</a> it was built for.</p>
   </footer>
 </div>
 
@@ -496,15 +496,15 @@ posthog.capture(<span class="s">'referral_activated'</span>,
     control: {
       name: 'Control',
       tiers: null,
-      hyp: 'If referrers get a plain link and no reward, that sets the baseline. Every incentive has to beat this to be worth paying for, and it is the only way to separate incentive effects from launches, seasonality and novelty.',
-      watch: 'Some people will share anyway. That is the point: it shows what the incentives add on top, and keeps incrementality honest.',
+      hyp: 'Referrers get a plain link and no reward. Every incentive has to beat this to be worth paying for. Running it at the same time separates incentive effects from launches, seasonality, and novelty.',
+      watch: 'Some people will share anyway. That is why the arm exists: it shows how many referrals would have happened without an incentive.',
       disclose: false
     },
     credits: {
       name: 'Credits',
       tiers: ['$25 of credit', '$75 of credit', '$150 of credit', '$300 of credit'],
       hyp: 'If referrers get credit on their bill, activated referred orgs per 100 eligible orgs rise vs control, because credit has a clear cash value. Expect more shares, with sign-up quality close to control.',
-      watch: 'It costs real money and only pays back if referred orgs stay. Credit lands on the organisation’s bill, so assign whole orgs to an arm.',
+      watch: 'It costs real money and only pays back if referred orgs stay. Credit lands on the bill of the whole organization, so assign whole orgs to an arm.',
       disclose: true
     },
     merch: {
@@ -524,8 +524,8 @@ posthog.capture(<span class="s">'referral_activated'</span>,
     fame: {
       name: 'Recognition',
       tiers: ['Your name on the hall of fame', 'Early access to one beta', 'A call with an engineer', 'Your name in the changelog'],
-      hyp: 'If referrers get recognition and early access, activated referred orgs rise vs control, because it rewards people who already evangelise. Expect a lift from a small group of heavy sharers, not the long tail.',
-      watch: 'Does not scale to the long tail. The hall of fame must be visible only inside this arm, or it leaks into the others.',
+      hyp: 'If referrers get recognition and early access, activated referred orgs rise vs control, because it rewards people who already evangelize. Expect the lift to come from a small group of heavy sharers.',
+      watch: 'The audience is small. The hall of fame must be visible only inside this arm, or it leaks into the others.',
       disclose: true
     }
   };
@@ -647,7 +647,7 @@ posthog.capture(<span class="s">'referral_activated'</span>,
     { who: 'mrs_null_pointer', what: 'Posts about it every Friday', n: 14 },
     { who: 'sudo_sandra', what: 'Convinced her whole platform team', n: 11 },
     { who: 'tiny-tim.sql', what: 'Shared it in a data Slack', n: 7 },
-    { who: 'the_one_who_forgot_the_semicolon', what: 'Honestly a bit surprised', n: 4 },
+    { who: 'the_one_who_forgot_the_semicolon', what: 'Surprised it worked', n: 4 },
     { who: 'dev_who_just_vibes', what: 'Vibecoded a side project with it', n: 2 }
   ];
   function renderBoard() {
@@ -701,10 +701,8 @@ posthog.capture(<span class="s">'referral_activated'</span>,
     $('#kout').textContent = k.toFixed(2);
     $('#kbar').style.width = Math.min(100, k * 100) + '%';
     var per100 = Math.round(k * 100);
-    $('#ktext').textContent = 'Every 100 referrers would bring in about ' + per100 + ' new activated orgs. ' +
-      (k >= 1 ? 'That would be self-sustaining, which is very rare.' :
-       k >= 0.3 ? 'That is a healthy extra channel.' :
-       'Small, but it is cheap, compounding and measurable, which is the point.');
+    $('#ktext').textContent = 'Every 100 referrers would bring in about ' + per100 + ' new activated orgs.' +
+      (k >= 1 ? ' Each referrer replaces themselves, so growth feeds itself.' : '');
   }
   ['k1', 'k2', 'k3', 'k4'].forEach(function (id) { $('#' + id).addEventListener('input', calc); });
   calc();
