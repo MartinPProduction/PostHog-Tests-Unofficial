@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostHog on PostHog: case study draft</title>
+<meta name="description" content="In October, PostHog merged 709 PRs that started in its own self-driving inbox. Here's the loop, the numbers, and where it still needs a human.">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('theme'); } catch (e) {}
+    if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23F54E00'/%3E%3Ccircle cx='11' cy='16' r='5' fill='%23EEEFE9' stroke='%23151515' stroke-width='2'/%3E%3Ccircle cx='21' cy='16' r='5' fill='%231D4AFF' stroke='%23151515' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Nunito:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EEEFE9;
+    --fg: #151515;
+    --accent: #E5E7E0;
+    --dash: #D0D1C9;
+    --red: #F54E00;
+    --yellow: #DC9300;
+    --blue: #1D4AFF;
+    --gray: #BFBFBC;
+    --text: color-mix(in srgb, var(--fg) 90%, transparent);
+    --muted: color-mix(in srgb, var(--fg) 62%, transparent);
+    --shadow: 4px 4px 0 var(--fg);
+    --radius: 10px;
+  }
+  :root[data-theme="dark"] {
+    --bg: #151515; --fg: #EEEFE9; --accent: #2C2C2C; --dash: #4B4B4B; --yellow: #F1A82C;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    font-size: 18px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .col { max-width: 720px; margin: 0 auto; }
+  a { color: var(--red); font-weight: 600; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { color: var(--fg); font-weight: 800; line-height: 1.12; margin: 0; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); }
+  h2 { font-size: clamp(1.55rem, 3vw, 2rem); margin: 3rem 0 1rem; }
+  h3 { font-size: 1.1rem; letter-spacing: -0.01em; }
+  p { margin: 0 0 1.15rem; }
+  code, pre { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  p code, li code { font-size: .82em; background: var(--accent); border: 1px solid var(--dash); border-radius: 5px; padding: .05em .35em; color: var(--fg); word-break: break-word; }
+  .eyebrow { font-weight: 800; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--red); margin-bottom: .7rem; display: block; }
+  .muted { color: var(--muted); }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 2px dashed var(--dash); }
+  .brand { font-weight: 800; color: var(--fg); display: flex; align-items: center; gap: .6rem; }
+  .tag { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; background: var(--yellow); color: #151515; border: 2px solid var(--fg); border-radius: 999px; padding: .05rem .6rem; }
+  .btn {
+    font: inherit; font-weight: 800; cursor: pointer; display: inline-block;
+    border: 2px solid var(--fg); border-radius: 8px; background: var(--red); color: #fff;
+    padding: .6rem 1.05rem; box-shadow: 0 3px 0 var(--fg);
+    transition: transform .18s ease-out, box-shadow .18s ease-out;
+  }
+  .btn:hover { transform: scale(1.025); transition: none; text-decoration: none; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--fg); transition: none; }
+  .btn.secondary { background: var(--bg); color: var(--fg); }
+  .btn.small { padding: .38rem .7rem; font-size: .88rem; }
+  .btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+  .hero { padding: 48px 0 28px; }
+  .hero h1 { max-width: 16em; }
+  .hero .lead { font-size: 1.25rem; margin: 1.1rem 0 0; max-width: 34em; }
+  .hero-img { margin: 32px 0 0; }
+
+  .frame { border: 2px solid var(--fg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; background: #fff; }
+  .frame img { display: block; width: 100%; height: auto; }
+  figure { margin: 2rem 0; }
+  figcaption { font-size: .88rem; color: var(--muted); margin-top: .8rem; line-height: 1.5; }
+
+  .note { border: 2px dashed var(--fg); border-radius: var(--radius); background: var(--accent); padding: .9rem 1.1rem; font-size: .92rem; margin: 28px 0 8px; }
+  .note b { color: var(--fg); }
+
+  blockquote.osq { margin: 2.2rem 0; padding: .2rem 0 .2rem 1.2rem; border-left: 5px solid var(--red); }
+  blockquote.osq p { font-size: 1.25rem; line-height: 1.45; color: var(--fg); font-weight: 600; margin: 0 0 .9rem; }
+  blockquote.osq footer { display: flex; align-items: center; gap: .7rem; font-size: .9rem; color: var(--muted); }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--fg); background: var(--yellow); color: #151515; font-weight: 800; display: grid; place-items: center; font-size: .85rem; flex: none; }
+  blockquote.osq footer b { color: var(--fg); display: block; line-height: 1.2; }
+
+  ul.scouts { padding-left: 1.2rem; margin: 0 0 1.15rem; }
+  ul.scouts li { margin-bottom: .55rem; }
+
+  section.dl { border-top: 2px dashed var(--dash); margin-top: 64px; padding: 48px 0 24px; }
+  .dl h2 { margin-top: 0; }
+  .win { border: 2px solid var(--fg); border-radius: var(--radius); background: var(--bg); box-shadow: var(--shadow); overflow: hidden; margin: 28px 0; }
+  .win-bar { display: flex; align-items: center; gap: .4rem; padding: .5rem .8rem; background: var(--accent); border-bottom: 2px solid var(--fg); font-weight: 800; font-size: .82rem; color: var(--fg); }
+  .win-bar .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--fg); flex: none; }
+  .win-bar .dot:nth-child(1) { background: var(--red); } .win-bar .dot:nth-child(2) { background: var(--yellow); } .win-bar .dot:nth-child(3) { background: var(--blue); }
+  .win-bar .title { margin-left: .5rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 600; font-size: .78rem; word-break: break-all; }
+  .win-body { padding: 1.3rem; }
+  .win-body ul { padding-left: 1.2rem; margin: .4rem 0 1.1rem; }
+  .win-body li { margin-bottom: .4rem; }
+  .meta { font-size: .85rem; color: var(--muted); margin: .2rem 0 1.1rem; }
+  pre { margin: .6rem 0 1.1rem; background: #151515; color: #EEEFE9; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .8rem; line-height: 1.6; border: 2px solid var(--fg); }
+
+  footer.site { border-top: 2px dashed var(--dash); padding: 28px 0 60px; font-size: .88rem; color: var(--muted); }
+  footer.site b { color: var(--fg); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">Case study <span class="tag">Draft</span></div>
+    <button class="btn secondary small" id="theme" aria-label="Toggle light and dark mode">Dark mode</button>
+  </header>
+
+  <div class="hero">
+    <span class="eyebrow">Customer story · PostHog</span>
+    <h1>How PostHog merged 709 self-driving PRs into PostHog in one month</h1>
+    <p class="lead">In October, PostHog merged 709 PRs that started in its own self-driving inbox. Here's the loop, the numbers, and where it still needs a human.</p>
+    <div class="hero-img frame"><img src="posthog-709-hero.png" alt="709 self-driving PRs merged into PostHog in one month. A four-step loop: a signal, an inbox report, a pull request, and a merge into production." width="1920" height="1080"></div>
+  </div>
+
+  <div class="col">
+    <div class="note"><b>Draft for posthog.com/customers.</b> Numbers come from public sources collected on Nov 9, 2026, and need checking against PostHog's internal dashboards before anything goes live. Quote sign-offs and the two job titles are unconfirmed. "This website" in the copy means posthog.com.</div>
+
+    <article>
+      <p><a href="https://posthog.com">PostHog</a> is the context layer for your product, installed by more than 500,000 organizations, and the company builds PostHog on it.</p>
+
+      <p>The PostHog app, the <a href="https://posthog.com/mcp">PostHog MCP</a>, <a href="https://posthog.com/desktop">PostHog Desktop</a>, and this website all report into PostHog's own project. More than 90 <a href="https://posthog.com/docs/self-driving/scouts">scouts</a> watch that project, most of them every hour.</p>
+
+      <p>Andy Maguire used PostHog as a customer before he worked on it. In 2022, <a href="https://posthog.com/customers/netdata">Netdata's case study</a> quoted him as its analytics and machine learning lead. Today he's on PostHog's self-driving team, building the loops that turn product data into pull requests, and he runs them on PostHog first.</p>
+
+      <p>Those loops exist because PostHog ships more code than its engineers can watch. In January 2026, the team merged 1,441 PRs. By August it was 4,869, with engineering headcount up only 10%. The extra PRs brought more errors, more agent feedback, and more Slack threads asking "is this happening to anyone else?"</p>
+
+      <blockquote class="osq">
+        <p>The whole timeline from complaint to fix took less than a work day, and the only time I spent on it was reviewing and a bit of prompting.</p>
+        <footer><span class="avatar" aria-hidden="true">AM</span><span><b>Andy Maguire</b>Engineer, Self-Driving</span></footer>
+      </blockquote>
+
+      <h2>Agents open most of the PRs now</h2>
+
+      <p>Over four months this year, the share of PostHog's monorepo PRs opened by agents went from around 20% to 70%. Most of those still start with an engineer prompting an agent. The newest slice is <a href="https://posthog.com/self-driving">self-driving</a>: PRs that start because a scout or signal source found the problem first.</p>
+
+      <p>The loop is the one customers get. Scouts and <a href="https://posthog.com/docs/self-driving/inbox/sources">signal sources</a> like <a href="https://posthog.com/error-tracking">Error Tracking</a>, <a href="https://posthog.com/logs">Logs</a>, and <a href="https://posthog.com/session-replay">Session Replay</a> emit signals. Signals group into <a href="https://posthog.com/docs/self-driving/reports">reports</a> in the <a href="https://posthog.com/docs/self-driving/inbox">Inbox</a>. An agent investigates each report and, when it's actionable, opens a PR with the evidence attached.</p>
+
+      <p>In October, the PostHog GitHub app opened 1,612 PRs from inbox reports on the <a href="https://github.com/PostHog/posthog">main PostHog repo</a>, and the team merged 709 of them, about one in ten of all PRs merged that month. In June, the app's PRs were 2.6% of merges.</p>
+
+      <figure>
+        <div class="frame"><img src="posthog-agent-pr-share.png" alt="Merged PRs opened by the PostHog GitHub app, as a share of all merged PRs in PostHog/posthog" width="1600" height="1172" loading="lazy"></div>
+        <figcaption>Merged PRs opened by the PostHog GitHub app in PostHog/posthog, as a share of all merged PRs, June to October 2026. Counted from public GitHub data and drawn as a trends insight.</figcaption>
+      </figure>
+
+      <p>Each of those PRs records the scout or source that found the problem, a link to the inbox report, whether a person or an auto-start kicked it off, and which agent, model, and skills wrote it. The repo is public, so anyone can read them.</p>
+
+      <h2>From an agent's complaint to production in under eight hours</h2>
+
+      <p>On August 28 at 11:28 UTC, an agent working in a customer's project got stuck. It wanted to define events before any had been captured, but the MCP could only update event definitions, not create them. So it filed <code>missing_tool</code> feedback through the MCP and fell back to an ugly workaround: firing one seed event per definition.</p>
+
+      <p>A scout called <code>signals-scout-agent-feedback</code> reads that feedback stream. About five minutes later, after checking for existing reports, open PRs, and assigned issues, it filed a report. At 11:42, an agent in PostHog Desktop opened <a href="https://github.com/PostHog/posthog/pull/90832">PR #90832</a> to add an <code>event-definition-create</code> tool.</p>
+
+      <figure>
+        <div class="frame"><img src="posthog-report-to-pr.png" alt="The agent feedback report in the PostHog inbox beside the pull request it became" width="1600" height="1210" loading="lazy"></div>
+        <figcaption>The report holds the evidence and the suggested fix. The PR links back to it and names the agent, model, and skills that wrote it.</figcaption>
+      </figure>
+
+      <p>The first version needed work. Codex and ReviewHog, PostHog's internal review bot, sent it through rounds of review, and it picked up backend changes and tests along the way. Andy approved it at 14:22, it merged at 18:02, and it was in production by 18:56.</p>
+
+      <p>After the merge, the scout kept watching. It notes in its scratchpad what it reported and what shipped, and it closes the theme only once the complaints have stopped.</p>
+
+      <h2>More than 90 scouts, one inbox</h2>
+
+      <p>Some of the scouts on PostHog's project come from the built-in set every customer gets. Dozens were written by the teams who own the problem:</p>
+
+      <ul class="scouts">
+        <li><code>signals-scout-team-self-driving</code> reads the team's Slack channel for bug reports that would otherwise die in a thread.</li>
+        <li><code>signals-scout-self-driving-github-issues</code> sweeps the team's GitHub issues and starts work on the ones with a clear scope and nothing blocking them.</li>
+        <li><code>signals-scout-self-driving-logs</code> reads production logs and adds new evidence to an existing report instead of opening a duplicate.</li>
+        <li>A <a href="https://posthog.com/replay-vision">Replay Vision</a> scanner watches recordings of PostHog Desktop for people getting visibly stuck.</li>
+      </ul>
+
+      <figure>
+        <div class="frame"><img src="posthog-scouts-roster.png" alt="The scouts roster for PostHog's own project" width="1600" height="1202" loading="lazy"></div>
+        <figcaption>A slice of the scouts running on PostHog's own project. Each one is a skill with a schedule, so its logic is plain English anyone on the team can edit.</figcaption>
+      </figure>
+
+      <p>Because every scout is a <a href="https://posthog.com/docs/skills">skill</a>, changing what one looks for doesn't need a deploy. Skills created in PostHog's internal project went from 62 in late April to 761 by the end of September, and Andy's agents loaded one in 78% of his chats across a recent 28-day stretch.</p>
+
+      <blockquote class="osq">
+        <p>I can have more of these going at once because I don't need to watch each agent work. Writing a good issue and checking the result still take time, but that feels like a much better use of mine.</p>
+        <footer><span class="avatar" aria-hidden="true">AM</span><span><b>Andy Maguire</b>Engineer, Self-Driving</span></footer>
+      </blockquote>
+
+      <p>Natalia Amorim on the marketing team writes scouts too. She runs two over PostHog's 90-odd comparison pages: one watches competitors' pricing and docs, and the other checks PostHog's own pages against the changelog, docs, and open PRs, because one embarrassing way to get a comparison wrong is underselling yourself. Findings arrive in Slack and the inbox with a suggested edit, and a person decides whether it becomes a PR. Across the whole website repo, the PostHog GitHub app had 68 PRs merged in October.</p>
+
+      <blockquote class="osq">
+        <p>The scout does the noticing, a human does the deciding, and nobody needs to add a recurring "re-read every competitor's pricing page" task to their calendar.</p>
+        <footer><span class="avatar" aria-hidden="true">NA</span><span><b>Natalia Amorim</b>Marketing</span></footer>
+      </blockquote>
+
+      <h2>Fewer than half the auto-started PRs get merged</h2>
+
+      <p>Of October's self-driving PRs that have since been merged or closed, the ones that started automatically after a report was triaged were merged about 41% of the time. When a person picked the report from the inbox first, that rose to about 82%. The rest were closed without merging.</p>
+
+      <p>Some problems need a human from the start. On September 5, an MCP error-rate alert fired at 9.9%, against a usual 0.3% to 1.2%. The investigation traced it to a mismatch between two separately deployed workers, and Andy steered the fix himself.</p>
+
+      <blockquote class="osq">
+        <p>So, the alert didn't autonomously fix production while I made coffee, since this one needed more steering from me than the others. But it caught the problem, gave me a starting investigation, and helped me get a compatibility fix merged. I'll take that.</p>
+        <footer><span class="avatar" aria-hidden="true">AM</span><span><b>Andy Maguire</b>Engineer, Self-Driving</span></footer>
+      </blockquote>
+
+      <p>The team also checks whether the extra PRs are breaking production. Reverts were 0.2% of merged PRs in June, in line with the 0.1% to 0.4% of the year before, when people wrote most of the code. GitHub data streams into the <a href="https://posthog.com/warehouse">context warehouse</a> too, and the team asks <a href="https://posthog.com/ai">PostHog AI</a> which CI jobs cost the most and fail most often.</p>
+
+      <p>For now, Andy still reviews the reports and the PRs himself.</p>
+
+      <blockquote class="osq">
+        <p>I'm on the fence about how long I'll want that, but for now I still like deciding what actually ships.</p>
+        <footer><span class="avatar" aria-hidden="true">AM</span><span><b>Andy Maguire</b>Engineer, Self-Driving</span></footer>
+      </blockquote>
+    </article>
+  </div>
+
+  <!-- DOWNLOADS -->
+  <section class="dl" id="downloads">
+    <div class="col">
+      <span class="eyebrow">Extras for reviewers</span>
+      <h2>Files for the pull request and the fact check</h2>
+      <p>A normal PostHog case study doesn't carry these two sections. They sit here so a reviewer can apply the work and check it.</p>
+
+      <div class="win" id="patch">
+        <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">0001-feat-customers-add-PostHog-on-PostHog-case-study.patch</span></div>
+        <div class="win-body">
+          <h3 style="margin-bottom:.5rem">The patch: every website change in one file</h3>
+          <p>It packages every change to PostHog's website code into one file, so the case study can be submitted as a pull request without redoing anything by hand. It contains:</p>
+          <ul>
+            <li>The new case study page, <code>contents/customers/posthog.md</code>.</li>
+            <li>The three wireframe images, in <code>static/images/customers/posthog/</code>, the folder where the site expects them.</li>
+            <li>Andy's and Natalia's quotes, added to PostHog's entry in the customers data file (<code>src/hooks/useCustomers.tsx</code>). <code>&lt;OSQuote&gt;</code> needs them there to display them.</li>
+            <li>The removal of the three spots where the PostHog logo is hardcoded to the 2022 marketing blog post, so it now links to the new case study (<code>Customers.tsx</code>, <code>Demos.tsx</code>, and <code>customers/index.tsx</code>).</li>
+          </ul>
+          <p class="meta">8 files changed, 116 insertions, 7 deletions · 853 KB, mostly the embedded images</p>
+          <p style="margin-bottom:.2rem">To apply it, from a clone of the posthog.com repo:</p>
+<pre>git checkout -b customers/posthog-on-posthog
+git am 0001-feat-customers-add-PostHog-on-PostHog-case-study.patch</pre>
+          <p class="meta">If it reports conflicts, retry with <code>git am --3way</code>.</p>
+          <a class="btn" href="0001-feat-customers-add-PostHog-on-PostHog-case-study.patch" download>Download the patch</a>
+        </div>
+      </div>
+
+      <div class="win" id="notes">
+        <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="title">posthog-on-posthog-research-notes.md</span></div>
+        <div class="win-body">
+          <h3 style="margin-bottom:.5rem">The research notes: where every number comes from</h3>
+          <p>This is the fact sheet behind the draft. Every number, date, and quote in the case study traces to a line in it, with its source: a PostHog blog post, a docs page, or a GitHub search run on Nov 9, 2026. It also notes caveats, such as the GitHub numbers needing confirmation against PostHog's internal data.</p>
+          <p>It's for the writer and reviewers, not for publishing. It helps when someone asks "where does 709 come from?" (answer: PRs in PostHog/posthog opened in October 2026 with a self-driving origin block, 1,612 opened and 709 merged), and it works as the checklist for the fact check before anything goes live.</p>
+          <p class="meta">Markdown, 8 KB · public sources only</p>
+          <a class="btn" href="posthog-on-posthog-research-notes.md" download>Download the research notes</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="col">
+      <p><b>Unofficial spec work</b> by Martin Pavlovic, made for PostHog's Developer Marketer application. Not made by, endorsed by, or affiliated with PostHog. The three screens in the article are labeled wireframes, not real PostHog screenshots. Everything in the case study is drawn from public sources listed in the research notes.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('theme');
+  function paint() { btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light mode' : 'Dark mode'; }
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    paint();
+  });
+  paint();
+})();
+</script>
+</body>
+</html>
